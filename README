@@ -23,3 +23,61 @@ For more information, please see the website at the address above.
 To get in touch with the maintainer(s) of this project please email
 
 	stacks.project@gmail.com
+
+## Dependency Graph
+
+A Python script in `scripts/dependency_graph.py` can generate a graph of references between labelled environments. It writes a Graphviz DOT file and optional JSON description. With `--tex` it outputs a TeX document containing a theorem and all dependencies.
+
+Examples:
+
+```bash
+python3 scripts/dependency_graph.py . --dot deps.dot --json
+python3 scripts/dependency_graph.py . --tex lemma-silly --tex-out deps.tex
+```
+
+Running the second command produces a TeX document with the theorem
+and its referenced environments.  For example the current output for
+`lemma-silly` is
+
+```tex
+\documentclass{article}
+\begin{document}
+\begin{lemma}
+\label{lemma-silly}
+Let $X$ be a spectral space. Let
+$$
+\xymatrix{
+Y \ar[r] \ar[d] & T \ar[d] \\
+X \ar[r] & \pi_0(X)
+}
+$$
+be a cartesian diagram in the category of topological spaces
+with $T$ profinite. Then $Y$ is spectral and $T = \pi_0(Y)$.
+If moreover $X$ is w-local, then $Y$ is w-local, $Y \to X$ is w-local,
+and the set of closed points of $Y$ is the inverse image of the
+set of closed points of $X$.
+\end{lemma}
+\begin{situation}
+\label{situation-setup}
+Here $S$ is a scheme and $B$ is an algebraic space over $S$.
+We assume $B$ is quasi-separated, locally Noetherian, and
+universally catenary (Decent Spaces, Definition
+\ref{decent-spaces-definition-universally-catenary}).
+Moreover, we assume given a dimension function
+$\delta : |B| \longrightarrow \mathbf{Z}$.
+We say $X/B$ is {\it good} if $X$ is an algebraic space
+over $B$ whose structure morphism $f : X \to B$ is
+quasi-separated and locally of finite type.
+In this case we define
+$$
+\delta = \delta_{X/B} : |X| \longrightarrow \mathbf{Z}
+$$
+as the map sending $x$ to $\delta(f(x))$ plus the transcendence degree
+of $x/f(x)$ (Morphisms of Spaces, Definition
+\ref{spaces-morphisms-definition-dimension-fibre}).
+This is a dimension function by
+More on Morphisms of Spaces, Lemma
+\ref{spaces-more-morphisms-lemma-universally-catenary-dimension-function}.
+\end{situation}
+\end{document}
+```
