@@ -156,7 +156,7 @@ def generate_dependency_tex(label, results, edges, path, outfile):
     with open(outfile, 'w') as f:
         f.write('\\documentclass{article}\n')
         f.write('\\begin{document}\n')
-        for lbl in reversed(order):
+        for lbl in order:
             for line in _extract_environment(path, lbl, results):
                 f.write(line)
         f.write('\\end{document}\n')

@@ -43,68 +43,24 @@ depends on.  You can visualize any DOT file with Graphviz:
 dot -Tpdf lemma_genus.dot -o lemma_genus.pdf
 ```
 
-Running the second command produces a TeX document with the theorem
-and its referenced environments.  For example the current output for
-`lemma-equality-genus-reduction-bigger-than` is
+Running the second command produces a TeX document with the referenced
+definitions and lemmas followed by the lemma itself.  For example the
+current output for `lemma-equality-genus-reduction-bigger-than` is
 
 ```tex
 \documentclass{article}
 \begin{document}
 \begin{lemma}
-\label{lemma-equality-genus-reduction-bigger-than}
-If equality holds in Lemma \ref{lemma-genus-reduction-bigger-than}
-then
+\label{lemma-divisor-special-fiber}
+Let \$X\$ be a regular model of a smooth curve \$C\$ over \$K\$.
 \begin{enumerate}
-\item the unique irreducible component of \$X_k\$ containing
-\$x\$ is a smooth projective geometrically irreducible curve
-over \$k\$,
-\item if \$C \subset X_k\$ is another irreducible component, then
-\$\kappa = H^0(C, \mathcal{O}_C)\$ is a finite separable extension
-of \$k\$, \$C\$ has a \$\kappa\$-rational point, and \$C\$ is smooth over \$\kappa\$
+\item the special fibre \$X_k\$ is an effective Cartier divisor on \$X\$,
+\item each irreducible component \$C_i\$ of \$X_k\$ is an effective
+Cartier divisor on \$X\$,
+\item \$X_k = \sum m_i C_i\$ (sum of effective Cartier divisors)
+where \$m_i\$ is the multiplicity of \$C_i\$ in \$X_k\$,
+\item \$\mathcal{O}_X(X_k) \cong \mathcal{O}_X\$.
 \end{enumerate}
-\end{lemma}
-\begin{lemma}
-\label{lemma-genus-reduction-bigger-than}
-In Situation \ref{situation-regular-model} assume \$X_k\$ has a \$k\$-rational
-point \$x\$ which is a smooth point of \$X_k \to \Spec(k)\$. Then
-$$
-\dim_k H^1((X_k)_{red}, \mathcal{O}_{(X_k)_{red}}) \geq
-g_{top} + g_{geom}(X_k/k)
-$$
-where \$g_{geom}\$ is as in
-Algebraic Curves, Section \ref{curves-section-genus-geometric-genus}
-and \$g_{top}\$ is the topological genus
-(Definition \ref{definition-top-genus})
-of the numerical type associated to \$X_k\$
-(Definition \ref{definition-numerical-type-model}).
-\end{lemma}
-\begin{definition}
-\label{definition-numerical-type-model}
-In Situation \ref{situation-regular-model} the
-{\it numerical type associated to \$X\$} is the numerical
-type described in Lemma \ref{lemma-numerical-type-of-model}.
-\end{definition}
-\begin{lemma}
-\label{lemma-numerical-type-of-model}
-In Situation \ref{situation-regular-model} with
-\$\kappa_i = H^0(C_i, \mathcal{O}_{C_i})\$ and \$g_i\$ the genus of \$C_i\$
-the data
-$$
-n, m_i, (C_i \cdot C_j), [\kappa_i : k], g_i
-$$
-is a numerical type of genus equal to the genus of \$C\$.
-\end{lemma}
-\begin{definition}
-\label{definition-top-genus}
-Let \$n, m_i, a_{ij}, w_i, g_i\$ be a numerical type \$T\$. The
-{\it topological genus of \$T\$} is the nonnegative integer
-\$g_{top} = 1 - n + e\$ from Lemma \ref{lemma-top-genus}.
-\end{definition}
-\begin{lemma}
-\label{lemma-top-genus}
-Let \$n, m_i, a_{ij}, w_i, g_i\$ be a numerical type.
-Let \$e\$ be the number of pairs (i, j) with \$i < j\$ and \$a_{ij} > 0\$.
-Then the expression \$g_{top} = 1 - n + e\$ is \$\geq 0\$.
 \end{lemma}
 \begin{situation}
 \label{situation-regular-model}
@@ -117,15 +73,59 @@ fibre \$X_k\$. Write \$X_k = \sum m_i C_i\$ as in
 Lemma \ref{lemma-divisor-special-fiber}.
 \end{situation}
 \begin{lemma}
-\label{lemma-divisor-special-fiber}
-Let \$X\$ be a regular model of a smooth curve \$C\$ over \$K\$.
+\label{lemma-top-genus}
+Let \$n, m_i, a_{ij}, w_i, g_i\$ be a numerical type.
+Let \$e\$ be the number of pairs \$(i, j)\$ with \$i < j\$ and \$a_{ij} > 0\$.
+Then the expression \$g_{top} = 1 - n + e\$ is \$\geq 0\$.
+\end{lemma}
+\begin{definition}
+\label{definition-top-genus}
+Let \$n, m_i, a_{ij}, w_i, g_i\$ be a numerical type \$T\$. The
+{\it topological genus of \$T\$} is the nonnegative integer
+\$g_{top} = 1 - n + e\$ from Lemma \ref{lemma-top-genus}.
+\end{definition}
+\begin{lemma}
+\label{lemma-numerical-type-of-model}
+In Situation \ref{situation-regular-model} with
+\$\kappa_i = H^0(C_i, \mathcal{O}_{C_i})\$ and \$g_i\$ the genus of \$C_i\$
+the data
+\$\$
+n, m_i, (C_i \cdot C_j), [\kappa_i : k], g_i
+\$\$
+is a numerical type of genus equal to the genus of \$C\$.
+\end{lemma}
+\begin{definition}
+\label{definition-numerical-type-model}
+In Situation \ref{situation-regular-model} the
+{\it numerical type associated to \$X\$} is the numerical
+type described in Lemma \ref{lemma-numerical-type-of-model}.
+\end{definition}
+\begin{lemma}
+\label{lemma-genus-reduction-bigger-than}
+In Situation \ref{situation-regular-model} assume \$X_k\$ has a \$k\$-rational
+point \$x\$ which is a smooth point of \$X_k \to \Spec(k)\$. Then
+\$\$
+\dim_k H^1((X_k)_{red}, \mathcal{O}_{(X_k)_{red}}) \geq
+g_{top} + g_{geom}(X_k/k)
+\$\$
+where \$g_{geom}\$ is as in
+Algebraic Curves, Section \ref{curves-section-genus-geometric-genus}
+and \$g_{top}\$ is the topological genus
+(Definition \ref{definition-top-genus})
+of the numerical type associated to \$X_k\$
+(Definition \ref{definition-numerical-type-model}).
+\end{lemma}
+\begin{lemma}
+\label{lemma-equality-genus-reduction-bigger-than}
+If equality holds in Lemma \ref{lemma-genus-reduction-bigger-than}
+then
 \begin{enumerate}
-\item the special fibre \$X_k\$ is an effective Cartier divisor on \$X\$,
-\item each irreducible component \$C_i\$ of \$X_k\$ is an effective
-Cartier divisor on \$X\$,
-\item \$X_k = \sum m_i C_i\$ (sum of effective Cartier divisors)
-where \$m_i\$ is the multiplicity of \$C_i\$ in \$X_k\$,
-\item \$\mathcal{O}_X(X_k) \cong \mathcal{O}_X\$.
+\item the unique irreducible component of \$X_k\$ containing
+\$x\$ is a smooth projective geometrically irreducible curve
+over \$k\$,
+\item if \$C \subset X_k\$ is another irreducible component, then
+\$\kappa = H^0(C, \mathcal{O}_C)\$ is a finite separable extension
+of \$k\$, \$C\$ has a \$\kappa\$-rational point, and \$C\$ is smooth over \$\kappa\$
 \end{enumerate}
 \end{lemma}
 \end{document}
