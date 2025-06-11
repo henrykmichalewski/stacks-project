@@ -81,3 +81,31 @@ More on Morphisms of Spaces, Lemma
 \end{situation}
 \end{document}
 ```
+
+To generate dependency documents for a batch of theorems you can run a
+short Python script. The following example chooses ten theorem labels at
+random and writes a TeX file for each:
+
+```bash
+python3 - <<'EOF'
+from scripts.dependency_graph import build_graph, generate_dependency_tex
+import random
+results, edges = build_graph('.')
+theorems = [l for l, d in results.items() if d['type'] == 'theorem']
+for lbl in random.sample(theorems, 10):
+    generate_dependency_tex(lbl, results, edges, '.', f'{lbl}.tex')
+EOF
+```
+
+Producing dependency files for every theorem in the project simply
+iterates over the list without sampling:
+
+```bash
+python3 - <<'EOF'
+from scripts.dependency_graph import build_graph, generate_dependency_tex
+results, edges = build_graph('.')
+for lbl, info in results.items():
+    if info['type'] == 'theorem':
+        generate_dependency_tex(lbl, results, edges, '.', f'{lbl}.tex')
+EOF
+```
