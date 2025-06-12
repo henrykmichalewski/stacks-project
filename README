@@ -48,7 +48,9 @@ python3 scripts/dependency_graph.py . \
 
 The optional `--lean-path` argument points to a mathlib4 checkout. When
 provided, Lean snippets for Stacks tags referenced in mathlib are inserted
-after each environment in the generated TeX.
+after each environment in the generated TeX.  Passing the `--interleave`
+flag places the Lean code next to the corresponding LaTeX statement for
+lemmas and definitions.
 
 Running the second command produces a TeX document with the theorem
 and its referenced environments.  For example the current output for
@@ -94,6 +96,23 @@ This is a dimension function by
 More on Morphisms of Spaces, Lemma
 \ref{spaces-more-morphisms-lemma-universally-catenary-dimension-function}.
 \end{situation}
+\end{document}
+```
+
+With `--interleave` enabled and a Lean snippet available the environment is
+rendered side by side with the Lean code.  For the sample lemma above the
+output looks like
+
+```tex
+\documentclass{article}
+\begin{document}
+\noindent\begin{minipage}[t]{0.48\linewidth}
+\begin{lemma}\label{lemma-a}True\end{lemma}
+\end{minipage}\hfill\begin{minipage}[t]{0.48\linewidth}
+\begin{verbatim}
+lemma lemma_a : True := by trivial
+\end{verbatim}
+\end{minipage}
 \end{document}
 ```
 

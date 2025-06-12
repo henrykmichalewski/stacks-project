@@ -194,9 +194,21 @@ def _extract_environment(path, label, results):
     return lines
 
 
-def generate_dependency_tex(label, results, edges, path, outfile, lean_snippets=None):
+def generate_dependency_tex(
+    label,
+    results,
+    edges,
+    path,
+    outfile,
+    lean_snippets=None,
+    interleave=False,
+):
     """Write a TeX file with ``label`` and all its dependencies.
-    If ``lean_snippets`` is provided, include corresponding Lean code."""
+
+    If ``lean_snippets`` is provided, include corresponding Lean code. When
+    ``interleave`` is ``True`` and a Lean snippet exists for a lemma or
+    definition, then the LaTeX environment and the Lean code are displayed
+    side-by-side using ``minipage`` blocks."""
     adj = {}
     for src, dst in edges:
         adj.setdefault(src, []).append(dst)
@@ -219,15 +231,34 @@ def generate_dependency_tex(label, results, edges, path, outfile, lean_snippets=
         f.write('\\documentclass{article}\n')
         f.write('\\begin{document}\n')
         for lbl in reversed(order):
-            for line in _extract_environment(path, lbl, results):
-                f.write(line)
+            env_lines = _extract_environment(path, lbl, results)
             snippet = lean_snippets.get(lbl)
-            if snippet:
+            env_type = results.get(lbl, {}).get('type')
+
+            if (
+                interleave
+                and snippet
+                and env_type in ('lemma', 'definition')
+            ):
+                f.write('\\noindent\\begin{minipage}[t]{0.48\\linewidth}\n')
+                for line in env_lines:
+                    f.write(line)
+                f.write('\\end{minipage}\\hfill\\begin{minipage}[t]{0.48\\linewidth}\n')
                 f.write('\\begin{verbatim}\n')
                 f.write(snippet)
                 if not snippet.endswith('\n'):
                     f.write('\n')
                 f.write('\\end{verbatim}\n')
+                f.write('\\end{minipage}\n')
+            else:
+                for line in env_lines:
+                    f.write(line)
+                if snippet:
+                    f.write('\\begin{verbatim}\n')
+                    f.write(snippet)
+                    if not snippet.endswith('\n'):
+                        f.write('\n')
+                    f.write('\\end{verbatim}\n')
         f.write('\\end{document}\n')
 
 
@@ -240,6 +271,7 @@ def main():
     parser.add_argument('--tex', metavar='LABEL', help='Generate TeX file for theorem LABEL and its deps')
     parser.add_argument('--tex-out', default='deps.tex', help='TeX output file (with --tex)')
     parser.add_argument('--lean-path', help='Path to mathlib4 for Lean snippets')
+    parser.add_argument('--interleave', action='store_true', help='Interleave LaTeX and Lean snippets side-by-side')
     args = parser.parse_args()
 
     results, edges = build_graph(args.path)
@@ -252,7 +284,15 @@ def main():
         tag_map = load_tag_map(args.path)
         lean_snippets = scan_mathlib(args.lean_path, tag_map)
     if args.tex:
-        generate_dependency_tex(args.tex, results, edges, args.path, args.tex_out, lean_snippets)
+        generate_dependency_tex(
+            args.tex,
+            results,
+            edges,
+            args.path,
+            args.tex_out,
+            lean_snippets,
+            args.interleave,
+        )
 
 
 if __name__ == '__main__':
