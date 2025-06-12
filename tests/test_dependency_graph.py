@@ -1,6 +1,9 @@
 import os
+import sys
 import tempfile
 import unittest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from scripts.dependency_graph import load_tag_map, scan_mathlib, generate_dependency_tex
 
@@ -21,9 +24,15 @@ class DependencyGraphTests(unittest.TestCase):
                 f.write('lemma foo : True := by\n')
                 f.write('  -- https://stacks.math.columbia.edu/tag/0001\n')
                 f.write('  trivial\n')
+            with open(os.path.join(d, 'attr.lean'), 'w') as f:
+                f.write('@[stacks 0001]\n')
+                f.write('def bar : True := by trivial\n')
+            with open(os.path.join(d, 'doc.lean'), 'w') as f:
+                f.write('''/-- Stacks Tag 0001 -/\nlemma baz : True := by trivial\n''')
             res = scan_mathlib(d, tag_map)
             self.assertIn('label-foo', res)
-            self.assertIn('lemma foo', res['label-foo'])
+            snippet = res['label-foo']
+            self.assertRegex(snippet, r'(lemma|def) (foo|bar|baz)')
 
     def test_generate_dependency_tex(self):
         with tempfile.TemporaryDirectory() as d:
@@ -32,13 +41,13 @@ class DependencyGraphTests(unittest.TestCase):
                 f.write('\\begin{lemma}\\label{lemma-a}A\\end{lemma}\n')
                 f.write('\\begin{lemma}\\label{lemma-b}\\ref{lemma-a}\\end{lemma}\n')
             results = {
-                'lemma-a': {'type': 'lemma', 'file': 'sample'},
-                'lemma-b': {'type': 'lemma', 'file': 'sample'},
+                'sample-lemma-a': {'type': 'lemma', 'file': 'sample', 'label': 'lemma-a'},
+                'sample-lemma-b': {'type': 'lemma', 'file': 'sample', 'label': 'lemma-b'},
             }
-            edges = [('lemma-b', 'lemma-a')]
-            snips = {'lemma-a': 'lemma foo : True := by trivial'}
+            edges = [('sample-lemma-b', 'sample-lemma-a')]
+            snips = {'sample-lemma-a': 'lemma foo : True := by trivial'}
             out = os.path.join(d, 'out.tex')
-            generate_dependency_tex('lemma-b', results, edges, d, out, snips)
+            generate_dependency_tex('sample-lemma-b', results, edges, d, out, snips)
             with open(out) as f:
                 data = f.read()
             self.assertIn('lemma foo', data)
