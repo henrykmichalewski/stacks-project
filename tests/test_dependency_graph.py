@@ -38,19 +38,48 @@ class DependencyGraphTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             sample = os.path.join(d, 'sample.tex')
             with open(sample, 'w') as f:
-                f.write('\\begin{lemma}\\label{lemma-a}A\\end{lemma}\n')
+                f.write('\\begin{lemma}\\label{lemma-a}True\\end{lemma}\n')
                 f.write('\\begin{lemma}\\label{lemma-b}\\ref{lemma-a}\\end{lemma}\n')
             results = {
                 'sample-lemma-a': {'type': 'lemma', 'file': 'sample', 'label': 'lemma-a'},
                 'sample-lemma-b': {'type': 'lemma', 'file': 'sample', 'label': 'lemma-b'},
             }
             edges = [('sample-lemma-b', 'sample-lemma-a')]
-            snips = {'sample-lemma-a': 'lemma foo : True := by trivial'}
+            snips = {'sample-lemma-a': 'lemma lemma_a : True := by trivial'}
             out = os.path.join(d, 'out.tex')
             generate_dependency_tex('sample-lemma-b', results, edges, d, out, snips)
             with open(out) as f:
                 data = f.read()
-            self.assertIn('lemma foo', data)
+        self.assertIn('lemma lemma_a', data)
+
+    def test_generate_dependency_tex_interleave(self):
+        with tempfile.TemporaryDirectory() as d:
+            sample = os.path.join(d, 'sample.tex')
+            with open(sample, 'w') as f:
+                f.write('\\begin{lemma}\\label{lemma-a}True\\end{lemma}\n')
+            results = {
+                'sample-lemma-a': {
+                    'type': 'lemma',
+                    'file': 'sample',
+                    'label': 'lemma-a',
+                }
+            }
+            edges = []
+            snips = {'sample-lemma-a': 'lemma lemma_a : True := by trivial'}
+            out = os.path.join(d, 'out.tex')
+            generate_dependency_tex(
+                'sample-lemma-a',
+                results,
+                edges,
+                d,
+                out,
+                snips,
+                interleave=True,
+            )
+            with open(out) as f:
+                data = f.read()
+            self.assertIn('minipage', data)
+            self.assertIn('lemma lemma_a', data)
 
 if __name__ == '__main__':
     unittest.main()
