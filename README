@@ -107,10 +107,17 @@ output looks like
 \documentclass{article}
 \begin{document}
 \noindent\begin{minipage}[t]{0.48\linewidth}
-\begin{lemma}\label{lemma-a}True\end{lemma}
+\begin{lemma}\label{lemma-a}
+For any $n \ge 0$ we have
+\[
+  \sum_{i=0}^n i = \frac{n(n+1)}{2}.
+\]
+\end{lemma}
 \end{minipage}\hfill\begin{minipage}[t]{0.48\linewidth}
 \begin{verbatim}
-lemma lemma_a : True := by trivial
+lemma lemma_a (n : Nat) :
+  (Finset.range (n + 1)).sum id = n * (n + 1) / 2 := by
+  simpa using Nat.sum_range_id n
 \end{verbatim}
 \end{minipage}
 \end{document}
