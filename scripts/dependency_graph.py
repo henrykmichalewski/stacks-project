@@ -26,40 +26,61 @@ def load_tag_map(path):
                 continue
             parts = line.split(',')
             if len(parts) == 2:
-                tag_map[parts[0]] = parts[1]
+                tag = parts[0].upper()
+                tag_map[tag] = parts[1]
     return tag_map
 
 
 def scan_mathlib(path, tag_map):
-    """Return mapping from Stacks labels to Lean code snippets."""
+    """Return mapping from Stacks labels to Lean code snippets.
+
+    Besides the canonical URL form ``https://stacks.math.columbia.edu/tag/XXXX``
+    we also recognise ``@[stacks XXXX]`` attributes and "Stacks Tag XXXX" in
+    docstrings as used in mathlib. This increases the number of matches.
+    """
     results = {}
-    tag_re = re.compile(r'https://stacks\.math\.columbia\.edu/tag/([0-9A-Za-z]+)')
-    env_re = re.compile(r'^(lemma|theorem|def|definition)\s+([\w\.]*)')
+    tag_url_re = re.compile(r'https://stacks\.math\.columbia\.edu/tag/([0-9A-Za-z]+)')
+    attr_tag_re = re.compile(r'@\[\s*stacks\s+([0-9A-Za-z]{4})\s*\]')
+    doc_tag_re = re.compile(r'Stacks\s+Tag\s+([0-9A-Za-z]{4})', re.IGNORECASE)
+    env_re = re.compile(
+        r'^(lemma|theorem|def|definition|structure|class|instance)\s+([\w\.]+)'
+    )
     for root, _, files in os.walk(path):
         for name in files:
             if not name.endswith('.lean'):
                 continue
             filename = os.path.join(root, name)
             try:
-                with open(filename, 'r') as f:
-                    lines = f.readlines()
+                with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+                    lines = f.read().splitlines()
             except Exception:
                 continue
             for i, line in enumerate(lines):
-                m = tag_re.search(line)
-                if not m:
+                match = (
+                    tag_url_re.search(line)
+                    or attr_tag_re.search(line)
+                    or doc_tag_re.search(line)
+                )
+                if not match:
                     continue
-                tag = m.group(1).upper()
+                tag = match.group(1).upper()
                 label = tag_map.get(tag)
                 if not label:
                     continue
-                # search upwards for lemma/def line
+                # search around for lemma/def line
                 j = i
                 while j >= 0 and not env_re.search(lines[j]):
                     j -= 1
-                start = max(j, 0)
-                snippet = ''.join(lines[start:i+3])
-                results[label] = snippet
+                if j < 0:
+                    j = i
+                    while j < len(lines) and not env_re.search(lines[j]):
+                        j += 1
+                    if j == len(lines):
+                        continue
+                start = j
+                snippet_lines = lines[start : min(len(lines), i + 3)]
+                snippet = "\n".join(snippet_lines) + "\n"
+                results.setdefault(label, snippet)
     return results
 
 
@@ -83,7 +104,8 @@ def parse_file(path, name, results, edges):
     if not os.path.exists(filename):
         return
     env_type = None
-    label = None
+    full_label = None
+    prefix = name + '-'
     with open(filename, 'r') as f:
         for line in f:
             line = line.strip()
@@ -91,24 +113,31 @@ def parse_file(path, name, results, edges):
                 m = re.match(r'\\begin{(' + '|'.join(ENVIRONMENTS) + ')}', line)
                 if m:
                     env_type = m.group(1)
-                    label = None
+                    full_label = None
                 continue
             else:
-                if label is None:
+                if full_label is None:
                     m = re.match(r'\\label{([^}]+)}', line)
                     if m:
-                        label = m.group(1)
-                        results[label] = {
+                        raw_label = m.group(1)
+                        full_label = raw_label if raw_label.startswith(prefix) else prefix + raw_label
+                        results[full_label] = {
                             'type': env_type,
-                            'file': name
+                            'file': name,
+                            'label': raw_label,
                         }
                         continue
                 for ref in re.findall(r'\\ref{([^}]+)}', line):
-                    if ref.startswith(PREFIXES) and label:
-                        edges.append((label, ref))
+                    target = ref if '-' in ref else prefix + ref
+                    if '-' in target:
+                        check = target.split('-', 1)[1]
+                    else:
+                        check = target
+                    if check.startswith(PREFIXES) and full_label:
+                        edges.append((full_label, target))
                 if re.match(r'\\end{' + env_type + '}', line):
                     env_type = None
-                    label = None
+                    full_label = None
 
 
 def build_graph(path):
@@ -138,6 +167,7 @@ def _extract_environment(path, label, results):
     if not info:
         return []
     filename = os.path.join(path, info['file'] + '.tex')
+    target = info.get('label', label)
     lines = []
     collecting = False
     env_type = None
@@ -152,7 +182,7 @@ def _extract_environment(path, label, results):
                     continue
                 else:
                     lines.append(line)
-                    if re.search(r'\\label{' + re.escape(label) + '}', line):
+                    if re.search(r'\\label{' + re.escape(target) + '}', line):
                         collecting = True
                     if re.match(r'\\end{' + env_type + '}', line):
                         env_type = None

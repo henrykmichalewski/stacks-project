@@ -96,3 +96,24 @@ More on Morphisms of Spaces, Lemma
 \end{situation}
 \end{document}
 ```
+
+The script `scripts/compute_stats.py` can compute basic statistics for the dependency graph.
+It recognises Stacks references in mathlib via the standard URL as well as `@[stacks TAG]` attributes and "Stacks Tag TAG" docstrings.
+For example:
+```bash
+python3 scripts/compute_stats.py . --lean-path ../mathlib4 --json
+```
+prints a JSON summary of the number of environments, edges and Lean snippets.
+The field `num_nodes_with_lean_snippet` counts how many Stacks environments
+actually include a snippet of Lean code.
+
+Example output for a small test repository:
+```bash
+$ python3 scripts/compute_stats.py . --lean-path ../mathlib4 --json
+{
+  "num_nodes": 2,
+  "num_edges": 0,
+  "num_lean_snippets": 1,
+  "num_nodes_with_lean_snippet": 1
+}
+```
