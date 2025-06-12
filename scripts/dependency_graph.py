@@ -127,9 +127,29 @@ def write_dot(results, edges, outfile):
             node_label = f"{label}\n({data['file']})"
             f.write(f'  "{label}" [label="{node_label}"];\n')
         for src, dst in edges:
-            if dst in results:
+            if dst in results and src in results:
                 f.write(f'  "{src}" -> "{dst}";\n')
         f.write('}\n')
+
+
+def subgraph(label, results, edges):
+    """Return nodes and edges reachable from ``label``."""
+    adj = {}
+    for src, dst in edges:
+        adj.setdefault(src, []).append(dst)
+
+    visited = set()
+    stack = [label]
+    while stack:
+        node = stack.pop()
+        if node in visited or node not in results:
+            continue
+        visited.add(node)
+        stack.extend(adj.get(node, []))
+
+    sub_results = {l: results[l] for l in visited}
+    sub_edges = [(s, d) for s, d in edges if s in visited and d in visited]
+    return sub_results, sub_edges
 
 
 def _extract_environment(path, label, results):
@@ -188,7 +208,7 @@ def generate_dependency_tex(label, results, edges, path, outfile, lean_snippets=
     with open(outfile, 'w') as f:
         f.write('\\documentclass{article}\n')
         f.write('\\begin{document}\n')
-        for lbl in reversed(order):
+        for lbl in order:
             for line in _extract_environment(path, lbl, results):
                 f.write(line)
             snippet = lean_snippets.get(lbl)
@@ -206,6 +226,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate dependency graph for Stacks Project.')
     parser.add_argument('path', nargs='?', default='.', help='Path to Stacks Project root')
     parser.add_argument('--dot', default='deps.dot', help='Output DOT file')
+    parser.add_argument('--single', metavar='LABEL', help='Only include LABEL and its dependencies in the DOT file')
     parser.add_argument('--json', action='store_true', help='Also output JSON data')
     parser.add_argument('--tex', metavar='LABEL', help='Generate TeX file for theorem LABEL and its deps')
     parser.add_argument('--tex-out', default='deps.tex', help='TeX output file (with --tex)')
@@ -213,7 +234,11 @@ def main():
     args = parser.parse_args()
 
     results, edges = build_graph(args.path)
-    write_dot(results, edges, args.dot)
+    if args.single:
+        sub_results, sub_edges = subgraph(args.single, results, edges)
+        write_dot(sub_results, sub_edges, args.dot)
+    else:
+        write_dot(results, edges, args.dot)
     if args.json:
         with open('deps.json', 'w') as j:
             json.dump({'nodes': results, 'edges': edges}, j, indent=2)
