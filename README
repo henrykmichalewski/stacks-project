@@ -44,6 +44,12 @@ python3 scripts/dependency_graph.py . \
 python3 scripts/dependency_graph.py . \
   --tex lemma-topological-invariance \
   --lean-path ../mathlib4-master --tex-out invariance.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-flat-base-change-regular-immersion \
+  --lean-path ../mathlib4-master --tex-out regular.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-picard-stack \
+  --lean-path ../mathlib4-master --tex-out picard.tex
 ```
 
 The optional `--lean-path` argument points to a mathlib4 checkout. When
