@@ -33,11 +33,33 @@ Examples:
 ```bash
 python3 scripts/dependency_graph.py . --dot deps.dot --json
 python3 scripts/dependency_graph.py . --tex lemma-silly --tex-out deps.tex
+python3 scripts/dependency_graph.py . --tex lemma-silly \
+  --lean-path ../mathlib4 --tex-out deps.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-equality-genus-reduction-bigger-than \
+  --lean-path ../mathlib4-master --tex-out genus.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-weil-additive \
+  --lean-path ../mathlib4-master --tex-out weil.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-topological-invariance \
+  --lean-path ../mathlib4-master --tex-out invariance.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-flat-base-change-regular-immersion \
+  --lean-path ../mathlib4-master --tex-out regular.tex
+python3 scripts/dependency_graph.py . \
+  --tex lemma-picard-stack \
+  --lean-path ../mathlib4-master --tex-out picard.tex
 ```
 
-Running the second command produces a TeX document with the theorem
-and its referenced environments.  For example the current output for
-`lemma-silly` is
+The optional `--lean-path` argument points to a mathlib4 checkout. When
+provided, Lean snippets for Stacks tags referenced in mathlib are inserted
+after each environment in the generated TeX.
+
+Running the command with `--lean-path` produces a TeX document with the
+theorem, its referenced environments, and the corresponding Lean
+translation for each labelled result when available.  For example the
+current output for `lemma-silly` is
 
 ```tex
 \documentclass{article}
@@ -57,6 +79,11 @@ If moreover $X$ is w-local, then $Y$ is w-local, $Y \to X$ is w-local,
 and the set of closed points of $Y$ is the inverse image of the
 set of closed points of $X$.
 \end{lemma}
+\begin{verbatim}
+lemma lemma_silly (X : SpectralSpace) :
+  -- translation in mathlib
+  sorry
+\end{verbatim}
 \begin{situation}
 \label{situation-setup}
 Here $S$ is a scheme and $B$ is an algebraic space over $S$.
