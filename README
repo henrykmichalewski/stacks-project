@@ -143,3 +143,22 @@ $ python3 scripts/compute_stats.py . --lean-path ../mathlib4 --json
   "num_nodes_with_lean_snippet": 1
 }
 ```
+
+## interleaved_dep_graph.py
+
+The new script `scripts/interleaved_dep_graph.py` is a stand‑alone tool that
+builds dependency graphs with the Stacks statements interleaved with Lean
+snippets.  It only requires `networkx` and `rich` and can therefore be run
+independently of the rest of the Stacks build system.  A typical call is
+
+```bash
+python3 interleaved_dep_graph.py /path/to/stacks-project \
+    --tex lemma-weil-additive \
+    --lean /path/to/mathlib4 \
+    --tex-out weil.tex --interleave
+```
+
+The output is a TeX document containing the selected statement together with all
+referenced environments and, when available, the corresponding Lean code shown
+side by side.  `--dot` and `--json` options produce Graphviz and JSON versions
+of the same dependency graph.
